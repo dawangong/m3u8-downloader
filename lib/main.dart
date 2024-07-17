@@ -1,17 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 // 全局store
-class CounterModel extends Model {
+class DownloadModel extends Model {
   int _selectedIndex = 0;
   final String _downloadDir = "m3u8-download/";
+  String _url = "";
+  String _name = "";
 
   int get selectedIndex => _selectedIndex;
   String get downloadDir => _downloadDir;
+  String get url => _url;
+  String get name => _name;
 
   void onItemTapped(int index) {
     _selectedIndex = index;
+    notifyListeners();
+  }
+
+  void onUrlChange(String v) {
+    _url = v;
+    notifyListeners();
+  }
+
+  void onNameChange(String v) {
+    _name = v;
     notifyListeners();
   }
 }
@@ -21,8 +34,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScopedModel<CounterModel>(
-        model: CounterModel(),
+    return ScopedModel<DownloadModel>(
+        model: DownloadModel(),
         child: MaterialApp(
           title: 'm3u8-downloader',
           theme: ThemeData(
@@ -44,10 +57,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  late DownloadModel _model;
   static final List<Widget> _widgetOptions = <Widget>[
     const FirstTab(),
     const SecondTab(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _model = ScopedModel.of<DownloadModel>(context); // 获取模型实例
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,12 +79,12 @@ class _MyHomePageState extends State<MyHomePage> {
             style:
                 const TextStyle(color: Colors.white, fontSize: 28), // 设置标题颜色为白色
           )),
-      body: ScopedModelDescendant<CounterModel>(
+      body: ScopedModelDescendant<DownloadModel>(
         builder: (context, child, model) {
           return _widgetOptions.elementAt(model.selectedIndex);
         },
       ),
-      bottomNavigationBar: ScopedModelDescendant<CounterModel>(
+      bottomNavigationBar: ScopedModelDescendant<DownloadModel>(
         builder: (context, child, model) {
           return BottomNavigationBar(
             items: const <BottomNavigationBarItem>[
@@ -84,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
             currentIndex: model.selectedIndex,
-            onTap: ScopedModel.of<CounterModel>(context).onItemTapped,
+            onTap: _model.onItemTapped,
           );
         },
       ),
@@ -92,8 +112,25 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class FirstTab extends StatelessWidget {
+class FirstTab extends StatefulWidget {
   const FirstTab({super.key});
+
+  @override
+  FirstTabState createState() => FirstTabState();
+}
+
+class FirstTabState extends State<FirstTab> {
+  late DownloadModel _model;
+  late TextEditingController _urlController;
+  late TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _model = ScopedModel.of<DownloadModel>(context); // 获取模型实例
+    _urlController = TextEditingController();
+    _nameController = TextEditingController();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +147,7 @@ class FirstTab extends StatelessWidget {
                     color: Colors.white,
                     alignment: Alignment.centerLeft,
                     margin: const EdgeInsets.only(top: 14),
-                    child: ScopedModelDescendant<CounterModel>(
+                    child: ScopedModelDescendant<DownloadModel>(
                       builder: (context, child, model) {
                         return Column(children: [
                           Container(
@@ -121,9 +158,11 @@ class FirstTab extends StatelessWidget {
                               style: TextStyle(fontSize: 19),
                             ),
                           ),
-                          const TextField(
+                          TextField(
+                            controller: _urlController,
                             textAlign: TextAlign.left,
-                            decoration: InputDecoration(
+                            onChanged: _model.onUrlChange,
+                            decoration: const InputDecoration(
                               labelText: "",
                               labelStyle: TextStyle(height: 0),
                               hintText: "请输入.m3u8结尾的链接 必填",
@@ -136,7 +175,7 @@ class FirstTab extends StatelessWidget {
                     color: Colors.white,
                     alignment: Alignment.centerLeft,
                     margin: const EdgeInsets.only(top: 14),
-                    child: ScopedModelDescendant<CounterModel>(
+                    child: ScopedModelDescendant<DownloadModel>(
                       builder: (context, child, model) {
                         return Column(children: [
                           Container(
@@ -147,9 +186,11 @@ class FirstTab extends StatelessWidget {
                               style: TextStyle(fontSize: 18),
                             ),
                           ),
-                          const TextField(
+                          TextField(
+                            controller: _nameController,
                             textAlign: TextAlign.left,
-                            decoration: InputDecoration(
+                            onChanged: _model.onNameChange,
+                            decoration: const InputDecoration(
                               labelText: "",
                               labelStyle: TextStyle(height: 0),
                               hintText: "请输入新的文件名称 选填",
@@ -162,7 +203,7 @@ class FirstTab extends StatelessWidget {
                     color: Colors.white,
                     alignment: Alignment.center,
                     margin: const EdgeInsets.only(top: 40),
-                    child: ScopedModelDescendant<CounterModel>(
+                    child: ScopedModelDescendant<DownloadModel>(
                       builder: (context, child, model) {
                         return ElevatedButton(
                           onPressed: () {},
@@ -191,7 +232,7 @@ class FirstTab extends StatelessWidget {
           Container(
               height: 30.0,
               alignment: Alignment.centerLeft,
-              child: ScopedModelDescendant<CounterModel>(
+              child: ScopedModelDescendant<DownloadModel>(
                 builder: (context, child, model) {
                   return Text(
                     '保存至: ${model.downloadDir}',
@@ -203,6 +244,13 @@ class FirstTab extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _urlController.dispose();
+    _nameController.dispose();
+    super.dispose();
   }
 }
 
