@@ -32,6 +32,8 @@ class DownloadModel extends Model {
   void onClickDownload() {
     print(url);
     print(name);
+    _url = "";
+    _name = "";
     notifyListeners();
   }
 }
@@ -214,6 +216,8 @@ class FirstTabState extends State<FirstTab> {
                       builder: (context, child, model) {
                         return ElevatedButton(
                           onPressed: () {
+                            _urlController.clear();
+                            _nameController.clear();
                             _model.onClickDownload();
                           },
                           style: ElevatedButton.styleFrom(
@@ -268,6 +272,25 @@ class FirstTabState extends State<FirstTab> {
   }
 }
 
+class DownItem {
+  final String name;
+  final String url;
+  final int percent;
+
+  DownItem({required this.name, required this.url, required this.percent});
+}
+
+List<DownItem> downList = [
+  DownItem(name: 'Apple', url: 'https://www.baidu.m3u8', percent: 30),
+  DownItem(name: 'Banana', url: 'https://www.baidu.m3u8', percent: 50),
+  DownItem(name: '1', url: 'https://www.baidu.m3u8', percent: 70),
+  DownItem(name: '2', url: 'https://www.baidu.m3u8', percent: 70),
+  DownItem(name: '3', url: 'https://www.baidu.m3u8', percent: 70),
+  DownItem(name: '4', url: 'https://www.baidu.m3u8', percent: 70),
+  DownItem(name: '5', url: 'https://www.baidu.m3u8', percent: 70),
+  DownItem(name: '6', url: 'https://www.baidu.m3u8', percent: 70),
+];
+
 class SecondTab extends StatelessWidget {
   const SecondTab({super.key});
 
@@ -275,18 +298,45 @@ class SecondTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
       child: Flex(
         direction: Axis.vertical,
         children: <Widget>[
           Expanded(
-            child: Container(
-              color: Colors.red,
+            child: ListView.separated(
+              itemCount: downList.length,
+              itemBuilder: (BuildContext context, int index) {
+                final item = downList[index];
+                return ListTile(
+                  isThreeLine: true, // 允许显示三行文本
+                  title: Text(item.name),
+                  subtitle: Column(
+                    // 使用Column来组织多个文本行
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item.url),
+                      Text("下载视频中: ${item.percent}%"),
+                    ],
+                  ),
+                );
+              },
+              separatorBuilder: (context, index) {
+                return const Divider(); // 自动添加分割线
+              },
             ),
           ),
           Container(
-            height: 30.0,
-            color: Colors.green,
-          ),
+              height: 30.0,
+              alignment: Alignment.centerLeft,
+              child: ScopedModelDescendant<DownloadModel>(
+                builder: (context, child, model) {
+                  return Text(
+                    '保存至: ${model.downloadDir}',
+                    textAlign: TextAlign.left,
+                    style: const TextStyle(fontSize: 20),
+                  );
+                },
+              )),
         ],
       ),
     );
