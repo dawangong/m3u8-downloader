@@ -20,11 +20,18 @@ class DownloadModel extends Model {
 
   void onUrlChange(String v) {
     _url = v;
+    print('URL changed to: $_url');
     notifyListeners();
   }
 
   void onNameChange(String v) {
     _name = v;
+    notifyListeners();
+  }
+
+  void onClickDownload() {
+    print(url);
+    print(name);
     notifyListeners();
   }
 }
@@ -206,10 +213,15 @@ class FirstTabState extends State<FirstTab> {
                     child: ScopedModelDescendant<DownloadModel>(
                       builder: (context, child, model) {
                         return ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            _model.onClickDownload();
+                          },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primaryContainer,
+                            backgroundColor: model.url == ""
+                                ? Colors.grey[200]
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6.0),
                             ),
@@ -219,7 +231,9 @@ class FirstTabState extends State<FirstTab> {
                           child: Text(
                             "下载文件",
                             style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
+                                color: model.url == ""
+                                    ? Colors.white
+                                    : Theme.of(context).colorScheme.primary,
                                 // fontWeight: FontWeight.bold,
                                 fontSize: 16),
                           ),
